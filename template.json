@@ -297,7 +297,7 @@
               }
             },
             "sources": {
-              "/opt": "https://github.com/widdix/aws-s3-virusscan/archive/master.zip"
+              "/opt": "https://github.com/jobscore/aws-s3-virusscan/archive/master.zip"
             },
             "files": {
               "/etc/awslogs/awslogs.conf": {

@@ -34,14 +34,16 @@ poller.poll do |msg|
         log.debug "s3://#{bucket}/#{key} does no longer exist"
         next
       end
-      if system('clamscan /tmp/target')
+      clamscan_output = `clamscan --no-summary --infected /tmp/target`
+      if $?.exitstatus == 0
         log.debug "s3://#{bucket}/#{key} was scanned without findings"
       else
+        infection_name = clamscan_output[/\A\/tmp\/target: (?<name>.+) FOUND\n\z/, :name]
         if conf['delete']
-          log.error "s3://#{bucket}/#{key} is infected, deleting..."
+          log.error "s3://#{bucket}/#{key} is infected with #{infection_name}, deleting..."
           sns.publish(
             topic_arn: conf['topic'],
-            message: "s3://#{bucket}/#{key} is infected, deleting...",
+            message: "s3://#{bucket}/#{key} is infected with #{infection_name}, deleting...",
             subject: "s3-virusscan s3://#{bucket}",
             message_attributes: {
               "key" => {
@@ -56,10 +58,10 @@ poller.poll do |msg|
           )
           log.error "s3://#{bucket}/#{key} was deleted"
         else
-          log.error "s3://#{bucket}/#{key} is infected"
+          log.error "s3://#{bucket}/#{key} is infected with #{infection_name}"
           sns.publish(
             topic_arn: conf['topic'],
-            message: "s3://#{bucket}/#{key} is infected",
+            message: "s3://#{bucket}/#{key} is infected with #{infection_name}",
             subject: "s3-virusscan s3://#{bucket}",
             message_attributes: {
               "key" => {

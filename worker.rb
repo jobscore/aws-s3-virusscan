@@ -5,6 +5,9 @@ require 'json'
 require 'uri'
 require 'yaml'
 require 'syslog/logger'
+require 'clamav/client'
+
+ENV['CLAMD_UNIX_SOCKET'] = '/var/run/clamd.scan/clamd.sock'
 
 log = Syslog::Logger.new 's3-virusscan'
 conf = YAML::load_file(__dir__ + '/s3-virusscan.conf')
@@ -34,11 +37,13 @@ poller.poll do |msg|
         log.debug "s3://#{bucket}/#{key} does no longer exist"
         next
       end
-      clamscan_output = `clamscan --no-summary --infected /tmp/target`
-      if $?.exitstatus == 0
+
+      scan_result = ClamAV::Client.new.execute(ClamAV::Commands::ScanCommand.new('/tmp/target'))
+      infection_name = scan_result[0].virus_name
+
+      if infection_name == nil
         log.debug "s3://#{bucket}/#{key} was scanned without findings"
       else
-        infection_name = clamscan_output[/\A\/tmp\/target: (?<name>.+) FOUND\n\z/, :name]
         if conf['delete']
           log.error "s3://#{bucket}/#{key} is infected with #{infection_name}, deleting..."
           sns.publish(
@@ -76,4 +81,3 @@ poller.poll do |msg|
     end
   end
 end
-

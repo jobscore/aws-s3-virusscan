@@ -389,29 +389,33 @@
               "b_enable_clamd": {
                 "command": "sed -i 's/Example/#Example/g' /etc/clamd.d/scan.conf"
               },
-              "b_enable_clamd_socket": {
+              "c_enable_clamd_socket": {
                 "command": "sed -i 's/#LocalSocket /LocalSocket /g' /etc/clamd.d/scan.conf"
               },
-              "b_enable_freshclam": {
+              "d_enable_freshclam": {
                 "command": "sed -i 's/Example/#Example/g' /etc/freshclam.conf"
               },
-              "c_symlink_app_dir": {
+              "e_symlink_app_dir": {
                 "command": "ln -s /opt/aws-s3-virusscan-master /opt/aws-s3-virusscan",
                 "test": "test ! -e /opt/aws-s3-virusscan"
               },
-              "d_symlink_app_initd": {
+              "f_start_clamd": {
+                "command": "/etc/init.d/clamd.scan start",
+                "test": "test ! -e /var/run/clamd.scan/clamd.pid"
+              },
+              "g_symlink_app_initd": {
                 "command": "ln -s /opt/aws-s3-virusscan/s3-virusscan /etc/init.d/s3-virusscan",
                 "test": "test ! -e /etc/init.d/s3-virusscan"
               },
-              "e_chmod_app_ruby": {
+              "h_chmod_app_ruby": {
                 "command": "chmod +x *.rb",
                 "cwd": "/opt/aws-s3-virusscan"
               },
-              "f_chmod_app_initd": {
+              "i_chmod_app_initd": {
                 "command": "chmod +x s3-virusscan",
                 "cwd": "/opt/aws-s3-virusscan"
               },
-              "g_update_clamav_db": {
+              "j_update_clamav_db": {
                 "command": "freshclam"
               }
             },
